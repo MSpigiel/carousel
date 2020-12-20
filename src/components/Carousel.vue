@@ -15,13 +15,13 @@
         </div>
         <div class="Carousel__content__container">
           <div class="Carousel__content__container--arrow">
-            <span class="Carousel__content__container--arrow--item" v-on:click="decrementIndex">&lsaquo;</span>
+            <span class="Carousel__content__container--arrow--item" v-on:click="previousSlide">&lsaquo;</span>
           </div>
           <div class="Carousel__content__container--central">
-            X
+            <slot></slot>
           </div>
           <div class="Carousel__content__container--arrow">
-            <span class="Carousel__content__container--arrow--item" v-on:click="incrementIndex">&rsaquo;</span>
+            <span class="Carousel__content__container--arrow--item" v-on:click="nextSlide">&rsaquo;</span>
           </div>
         </div>
       </div>
@@ -32,9 +32,11 @@ import Timer from '../Timer.js';
 
 export default {
   name: 'Carousel',
+  props: {
+    images: { type: Array, initial: [], required: true }
+  },
   data: function () {
     return {
-      images: ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg'],
       currentIndex: 0,
       timer: null,
     }
@@ -42,6 +44,14 @@ export default {
   methods: {
     backgroundImage (index) {
       return require('@/assets/' + this.images[index]);
+    },
+    nextSlide() {
+      this.incrementIndex();
+      this.timer.restart();
+    },
+    previousSlide() {
+      this.decrementIndex();
+      this.timer.restart();
     },
     decrementIndex() {
       if (this.currentIndex === 0) {
@@ -57,6 +67,10 @@ export default {
         this.currentIndex++;
       }
     },
+    setIndex(index) {
+      this.currentIndex = index;
+      this.timer.restart();
+    }
     // doFlip() {
     //   this.images.push(this.images.shift());
     //   const illustrations = require.context(
@@ -64,10 +78,6 @@ export default {
     //   )
     //   console.log(illustrations.keys())
     // }
-    setIndex(index) {
-      this.currentIndex = index;
-      this.timer.restart();
-    }
   },
   computed: {
     sideImgIndex() {
@@ -111,7 +121,7 @@ export default {
     }
     &__container {
       width: 100%;
-      height: 45%;
+      min-height: 45%;
       display: flex;
       &--arrow {
         font-size: 7vh;
@@ -126,6 +136,10 @@ export default {
           text-align: right;
         }
         @media only screen and (hover: none) and (pointer: coarse) {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
           display: none;
         }
       }
