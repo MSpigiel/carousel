@@ -32,7 +32,7 @@ export default {
 
     &__header {
       text-align: center;
-      margin-bottom: 1em;
+      margin-bottom: 10px;
       &--main {
         text-transform: uppercase;
         font-size: 34px;

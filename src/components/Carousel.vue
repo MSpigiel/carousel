@@ -1,5 +1,5 @@
 <template>
-    <div class="Carousel">
+    <div class="Carousel" v-touch:swipe.left="nextSlide" v-touch:swipe.right="previousSlide">
       <div class="Carousel__background">
         <img class="Carousel__background--main" :src="backgroundImage(currentIndex)">
         <img class="Carousel__background--side" :src="backgroundImage(sideImgIndex)">
@@ -71,13 +71,6 @@ export default {
       this.currentIndex = index;
       this.timer.restart();
     }
-    // doFlip() {
-    //   this.images.push(this.images.shift());
-    //   const illustrations = require.context(
-    //       '@/assets/.', false, /\.jpg$/
-    //   )
-    //   console.log(illustrations.keys())
-    // }
   },
   computed: {
     sideImgIndex() {
