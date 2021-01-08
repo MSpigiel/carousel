@@ -1,31 +1,39 @@
 <template>
-    <div class="Carousel" v-touch:swipe.left="nextSlide" v-touch:swipe.right="previousSlide">
-      <div class="Carousel__background">
-        <img class="Carousel__background--main" :src="backgroundImage(currentIndex)">
-        <img class="Carousel__background--side" :src="backgroundImage(sideImgIndex)">
+  <div class="Carousel" v-touch:swipe.left="nextSlide" v-touch:swipe.right="previousSlide">
+    <div class="Carousel__background">
+      <div class="Carousel__background--main" :class="reverse ? 'Carousel__background--main--reversed' : null">
+        <transition :name="reverse ? 'slider-right' : 'slider-left'">
+          <img class="Carousel__background--img" :src="backgroundImage(currentIndex)" :key="currentIndex">
+        </transition>
       </div>
-      <div class="Carousel__content">
-        <div class="Carousel__content__slider">
+      <div class="Carousel__background--side" :class="reverse ? 'Carousel__background--side--reversed' : null">
+        <transition :name="reverse ? 'slider-right' : 'slider-left'">
+          <img class="Carousel__background--img" :src="backgroundImage(sideImgIndex)" :key="sideImgIndex">
+        </transition>
+      </div>
+    </div>
+    <div class="Carousel__content">
+      <div class="Carousel__content__slider">
           <span
-            v-for="(img, index) in images" :key="`${img}-${index}`"
-            v-on:click="setIndex(index)"
-            class="Carousel__content__slider--item"
-            :class="index===currentIndex ? 'Carousel__content__slider--item--selected' : null"
+              v-for="(img, index) in images" :key="`${img}-${index}`"
+              v-on:click="setIndex(index)"
+              class="Carousel__content__slider--item"
+              :class="index===currentIndex ? 'Carousel__content__slider--item--selected' : null"
           ></span>
+      </div>
+      <div class="Carousel__content__container">
+        <div class="Carousel__content__container--arrow">
+          <button class="Carousel__content__container--arrow--item" :disabled="slidingInProgress" v-on:click="previousSlide">&lsaquo;</button>
         </div>
-        <div class="Carousel__content__container">
-          <div class="Carousel__content__container--arrow">
-            <span class="Carousel__content__container--arrow--item" v-on:click="previousSlide">&lsaquo;</span>
-          </div>
-          <div class="Carousel__content__container--central">
-            <slot></slot>
-          </div>
-          <div class="Carousel__content__container--arrow">
-            <span class="Carousel__content__container--arrow--item" v-on:click="nextSlide">&rsaquo;</span>
-          </div>
+        <div class="Carousel__content__container--central">
+          <slot></slot>
+        </div>
+        <div class="Carousel__content__container--arrow">
+          <button class="Carousel__content__container--arrow--item" :disabled="slidingInProgress" v-on:click="nextSlide">&rsaquo;</button>
         </div>
       </div>
     </div>
+  </div>
 </template>
 <script>
 import Timer from '../Timer.js';
@@ -39,6 +47,8 @@ export default {
     return {
       currentIndex: 0,
       timer: null,
+      reverse: false,
+      slidingInProgress: false,
     }
   },
   methods: {
@@ -54,18 +64,24 @@ export default {
       this.timer.restart();
     },
     decrementIndex() {
+      this.reverse = true;
+      this.slidingInProgress = true;
       if (this.currentIndex === 0) {
         this.currentIndex = this.images.length - 1;
       } else {
         this.currentIndex--;
       }
+      setTimeout(() => this.slidingInProgress = false, 350);
     },
     incrementIndex() {
+      this.reverse = false;
+      this.slidingInProgress = true;
       if (this.currentIndex === this.images.length - 1) {
         this.currentIndex = 0
       } else {
         this.currentIndex++;
       }
+      setTimeout(() => this.slidingInProgress = false, 350);
     },
     setIndex(index) {
       this.currentIndex = index;
@@ -78,7 +94,7 @@ export default {
         return 0;
       }
       return this.currentIndex + 1;
-    }
+    },
   },
   mounted() {
     this.timer = new Timer(this.incrementIndex, 5000);
@@ -117,13 +133,21 @@ export default {
       min-height: 45%;
       display: flex;
       &--arrow {
-        font-size: 7vh;
-        color: white;
         height: 100%;
         width: 10%;
         padding: 0 20px;
         &--item {
+          border: none;
+          background-color: transparent;
+          color: white;
+          font-size: 7vh;
           cursor: pointer;
+          &:disabled {
+            cursor: not-allowed;
+          }
+          &:focus {
+            outline: none;
+          }
         }
         &:last-child {
           text-align: right;
@@ -152,17 +176,62 @@ export default {
     top: 0;
     left: 0;
     z-index: -100;
+    overflow: hidden;
+
+    .slider-left-leave-active, .slider-left-enter-active,
+    .slider-right-leave-active, .slider-right-enter-active {
+      transition: 0.3s linear;
+    }
+
+    .slider-left-leave-to {
+      transform: translateX(-100%);
+    }
+
+    .slider-left-enter-to {
+      transform: translateX(-100%);
+    }
+
+    .slider-right-leave-to {
+      transform: translateX(100%);
+    }
+
+    .slider-right-enter-to {
+      transform: translateX(100%);
+    }
+
     &--main {
       width: 50%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+
+      &--reversed {
+        flex-direction: row-reverse;
+      }
+
       @media (max-width: 1024px) {
         width: 100%;
       }
     }
     &--side {
       width: 50%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+
+      &--reversed {
+        flex-direction: row-reverse;
+      }
+
       @media (max-width: 1024px) {
         display: none;
       }
+    }
+
+    &--img {
+      min-width: 100%;
+      width: 100%;
+      height: 100%;
     }
   }
 }
