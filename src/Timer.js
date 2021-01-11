@@ -22,7 +22,6 @@ export default function Timer(callback, milliseconds) {
                     timer = setInterval(callback, milliseconds);
                 }, time);
             } else {
-                this.stop();
                 timer = setInterval(callback, milliseconds);
             }
         }
