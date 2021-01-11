@@ -1,15 +1,35 @@
 export default function Timer(callback, milliseconds) {
+    this.timeLeft = milliseconds / 1000;
     let timer = setInterval(callback, milliseconds);
+    let timeout = null;
+    let isPaused = false;
+    this.counter = setInterval(() => {
+        if (!isPaused) {
+            this.timeLeft--;
+            if (this.timeLeft === 0) {
+                this.timeLeft = milliseconds / 1000;
+            }
+        }
+    }, 1000);
 
-    this.start = function() {
+    this.start = function (time) {
         if (!timer) {
-            this.stop();
-            timer = setInterval(callback, milliseconds);
+            if (time !== 0) {
+                clearTimeout(timeout);
+                timeout = null;
+                timeout = setTimeout(() => {
+                    callback();
+                    timer = setInterval(callback, milliseconds);
+                }, time);
+            } else {
+                this.stop();
+                timer = setInterval(callback, milliseconds);
+            }
         }
         return this;
     }
 
-    this.stop = function() {
+    this.stop = function () {
         if (timer) {
             clearInterval(timer);
             timer = null;
@@ -17,7 +37,23 @@ export default function Timer(callback, milliseconds) {
         return this;
     }
 
-    this.restart = function() {
-        return this.stop().start();
+    this.restart = function () {
+        this.timeLeft = milliseconds / 1000;
+        isPaused = false;
+        return this.stop().start(0);
+    }
+
+    this.pause = function () {
+        isPaused = true;
+        clearTimeout(timeout);
+        timeout = null;
+        this.stop();
+    }
+
+    this.resume = function () {
+        if (!timer) {
+            isPaused = false;
+            this.start(this.timeLeft * 1000);
+        }
     }
 }

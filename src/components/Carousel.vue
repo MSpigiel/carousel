@@ -1,5 +1,5 @@
 <template>
-  <div class="Carousel" v-touch:swipe.left="nextSlide" v-touch:swipe.right="previousSlide">
+  <div class="Carousel">
     <div class="Carousel__background">
       <div class="Carousel__background--main" :class="reverse ? 'Carousel__background--main--reversed' : null">
         <transition :name="reverse ? 'slider-right' : 'slider-left'">
@@ -12,7 +12,7 @@
         </transition>
       </div>
     </div>
-    <div class="Carousel__content">
+    <div @mouseleave="mouseLeave" @mouseover="mouseOver"  class="Carousel__content" v-touch:swipe.left="nextSlide" v-touch:swipe.right="previousSlide">
       <div class="Carousel__content__slider">
           <span
               v-for="(img, index) in images" :key="`${img}-${index}`"
@@ -26,6 +26,7 @@
           <button class="Carousel__content__container--arrow--item" :disabled="slidingInProgress" v-on:click="previousSlide">&lsaquo;</button>
         </div>
         <div class="Carousel__content__container--central">
+          {{ timeLeft }}
           <slot></slot>
         </div>
         <div class="Carousel__content__container--arrow">
@@ -56,37 +57,36 @@ export default {
       return require('@/assets/' + this.images[index]);
     },
     nextSlide() {
+      this.performAnimationActions(false);
       this.incrementIndex();
       this.timer.restart();
     },
     previousSlide() {
+      this.performAnimationActions(true);
       this.decrementIndex();
       this.timer.restart();
-    },
-    decrementIndex() {
-      this.reverse = true;
-      this.slidingInProgress = true;
-      if (this.currentIndex === 0) {
-        this.currentIndex = this.images.length - 1;
-      } else {
-        this.currentIndex--;
-      }
-      setTimeout(() => this.slidingInProgress = false, 350);
-    },
-    incrementIndex() {
-      this.reverse = false;
-      this.slidingInProgress = true;
-      if (this.currentIndex === this.images.length - 1) {
-        this.currentIndex = 0
-      } else {
-        this.currentIndex++;
-      }
-      setTimeout(() => this.slidingInProgress = false, 350);
     },
     setIndex(index) {
       this.currentIndex = index;
       this.timer.restart();
-    }
+    },
+    decrementIndex() {
+      this.currentIndex === 0 ? this.currentIndex = this.images.length - 1 : this.currentIndex--;
+    },
+    incrementIndex() {
+      this.currentIndex === this.images.length - 1 ? this.currentIndex = 0 : this.currentIndex++;
+    },
+    performAnimationActions(reversed) {
+      this.reverse = reversed;
+      this.slidingInProgress = true;
+      setTimeout(() => this.slidingInProgress = false, 350);
+    },
+    mouseOver() {
+      this.timer.pause();
+    },
+    mouseLeave() {
+      this.timer.resume();
+    },
   },
   computed: {
     sideImgIndex() {
@@ -95,9 +95,18 @@ export default {
       }
       return this.currentIndex + 1;
     },
+    timeLeft() {
+      return this.timer?.timeLeft;
+    }
   },
   mounted() {
-    this.timer = new Timer(this.incrementIndex, 5000);
+    this.timer = new Timer(() => {
+      this.performAnimationActions(false);
+      this.incrementIndex();
+    }, 5000);
+    window.addEventListener('blur', () => {
+      this.timer.pause();
+    });
   }
 }
 </script>
@@ -165,6 +174,7 @@ export default {
         color: white;
         height: 100%;
         width: 100%;
+        text-align: center;
       }
     }
   }
